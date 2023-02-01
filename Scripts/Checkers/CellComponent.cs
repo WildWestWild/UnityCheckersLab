@@ -11,8 +11,7 @@ namespace Checkers
         
         [field: SerializeField]
         public Material BlackMaterial { get; set; }
-        
-        
+
         private Dictionary<NeighborType, CellComponent> _neighbors;
 
 
@@ -26,6 +25,7 @@ namespace Checkers
 
         public override void OnPointerEnter(PointerEventData eventData)
         {
+            Debug.Log($"X = {Coordinates.X}, Y = {Coordinates.Y}");
             CallBackEvent(this, true);
         }
 

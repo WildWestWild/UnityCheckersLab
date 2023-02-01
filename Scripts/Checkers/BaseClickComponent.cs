@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using DefaultNamespace;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,22 +14,35 @@ namespace Checkers
 
         [Tooltip("Цветовая сторона игрового объекта"), SerializeField]
         private ColorType _color;
+        
+        protected Coordinates Coordinates;
 
+        public void SetCoordinate(Coordinates coordinates) => Coordinates = coordinates;
+        public Coordinates GetCoordinate() => Coordinates;
         /// <summary>
         /// Возвращает цветовую сторону игрового объекта
         /// </summary>
         public ColorType GetColor => _color;
 
+        public void SetColor(ColorType colorType) => _color = colorType;
+
+        /// <summary>
+        /// Выбран ли данный объект, для передвижения на его место, либо для уничтожения
+        /// </summary>
+        public bool IsMovePicked { get; set; }
+
         /// <summary>
         /// Возвращает или устанавливает пару игровому объекту
         /// </summary>
         /// <remarks>У клеток пара - фишка, у фишек - клетка</remarks>
+        [CanBeNull]
         public BaseClickComponent Pair { get; set; }
 
         public void SetMaterial([CanBeNull] Material material = null)
         {
             _mesh.sharedMaterial = material ? material : _startMaterial;
         }
+        public void SaveBaseMaterial(Material material) => _startMaterial = material;
 
         /// <summary>
         /// Событие клика на игровом объекте
@@ -74,6 +86,25 @@ namespace Checkers
             //2 элемент - материал при наведении курсора на клетку/выборе фишки
             //3 элемент - материал клетки, на которую можно передвинуть фишку
             _startMaterial = _mesh.sharedMaterial;
+        }
+
+        /// <summary>
+        /// Отвязка Pair
+        /// </summary>
+        public void DestroyPair()
+        {
+            if (Pair != null) Pair.Pair = null;
+            Pair = null;
+        }
+
+        /// <summary>
+        /// Привязка Pair
+        /// </summary>
+        /// <param name="newPair">Тот объект, который хотим связать с текущим</param>
+        public void CreatePair(BaseClickComponent newPair)
+        {
+            newPair.Pair = this;
+            Pair = newPair;
         }
 	}
 
