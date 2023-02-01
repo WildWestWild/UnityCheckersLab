@@ -153,6 +153,7 @@ namespace Checkers
             _gameManager.PassMove();
             _savePickedChip = null;
             _savePickedCell = null;
+            _saveDestroyChip = null;
         }
 
         private IEnumerator MoveChip()
