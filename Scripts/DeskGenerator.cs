@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#nullable enable
+using System.Collections;
 using System.Collections.Generic;
 using Checkers;
 using DefaultNamespace;
@@ -14,6 +15,9 @@ public class DeskGenerator: MonoBehaviour
     [SerializeField] private ClickHandler _clickHandler;
 
     private CellComponent[,] Cells;
+    private IObserver? _observer;
+    private IGameManager _IGameManager;
+    private Dictionary<string, IBaseClickComponent> _coordinatesDictionary = new Dictionary<string, IBaseClickComponent>();
     private int tunrPoints;
 
     public void InitiateTurnDesk() => tunrPoints = 180;
@@ -22,10 +26,11 @@ public class DeskGenerator: MonoBehaviour
     {
         Cells = new CellComponent[_rows, _cols];
         _clickHandler = GetComponent<ClickHandler>();
+        _observer = GetComponent<Observer>();
         var gameManager = GetComponent<GameManager>();
-        
+        _IGameManager = gameManager;
+
         var color = ColorType.White;
-        Dictionary<string, BaseClickComponent> coordinatesDictionary = new Dictionary<string, BaseClickComponent>();
 
         for (int i = 0; i < _rows; i++)
         {
@@ -46,7 +51,7 @@ public class DeskGenerator: MonoBehaviour
                 cell.SaveBaseMaterial(material);
                 var coordinate = new Coordinates(j, i);
                 cell.SetCoordinate(coordinate);
-                coordinatesDictionary.Add(coordinate.GetCoordinateKey(), cell);
+                _coordinatesDictionary.Add(coordinate.GetCoordinateKey(), cell);
 
                 Cells[i, j] = cell;
 
@@ -65,12 +70,20 @@ public class DeskGenerator: MonoBehaviour
         }
         
         gameManager.Init(this, _rows);
-        _clickHandler.Init(Cells, coordinatesDictionary, gameManager);
+        _clickHandler.Init(Cells, _coordinatesDictionary, gameManager, _observer);
+        _observer.CheckValidMode(ref _observer);
+        _observer?.TryActiveRecordMode(_IGameManager);
+        _observer?.TryActiveReplayMode(_clickHandler, _coordinatesDictionary);
     }
 
     private void Start()
     {
         StartCoroutine(TurnDesk());
+    }
+
+    private void FixedUpdate()
+    {
+        _observer?.CheckReplayMethod();
     }
 
     private void CreateChip(CellComponent cell, Material material, ColorType colorType)

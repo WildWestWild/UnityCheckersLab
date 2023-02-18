@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace Checkers
 {
-    public abstract class BaseClickComponent : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public abstract class BaseClickComponent : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IBaseClickComponent
     {
         //Меш игрового объекта
         private MeshRenderer _mesh;

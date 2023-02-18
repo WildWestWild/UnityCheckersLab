@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace DefaultNamespace
 {
-    public class GameManager: MonoBehaviour
+    public class GameManager: MonoBehaviour, IGameManager
     {
         [SerializeField] private Text VictoryPhrase;
         private DeskGenerator _deskGenerator;

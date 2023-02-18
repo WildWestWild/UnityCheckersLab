@@ -5,14 +5,15 @@ using UnityEngine;
 
 namespace Checkers
 {
-    public class ClickHandler : MonoBehaviour
+    public class ClickHandler : MonoBehaviour, IClickHandler
     {
         private CellComponent[,] _cells;
-        private Dictionary<string, BaseClickComponent> _coordinateDictionary;
+        private Dictionary<string, IBaseClickComponent> _coordinateDictionary;
         private static ChipComponent _savePickedChip;
         private static CellComponent _savePickedCell;
         private static ChipComponent _saveDestroyChip;
         private GameManager _gameManager;
+        private IObserver _observer;
 
         public void Start()
         {
@@ -25,41 +26,47 @@ namespace Checkers
         /// <param name="cells"></param>
         /// <param name="coordinateDictionary"></param>
         /// <param name="gameManager"></param>
-        public void Init(CellComponent[,] cells, Dictionary<string, BaseClickComponent> coordinateDictionary, GameManager gameManager)
+        /// <param name="observer"></param>
+        public void Init(CellComponent[,] cells, Dictionary<string, IBaseClickComponent> coordinateDictionary, GameManager gameManager, IObserver observer)
         {
             _cells = cells;
             _coordinateDictionary = coordinateDictionary;
             _gameManager = gameManager;
+            _observer = observer;
 
-            foreach (var cell in cells)
+            if (!_observer.IsNeedBlockEventUI)
             {
-                cell.OnClickEventHandler += OnCheckClicked;
-
-                if (cell.Pair is null)
+                foreach (var cell in cells)
                 {
-                    continue;
-                }
+                    cell.OnClickEventHandler += OnCheckClicked;
 
-                var chip = cell.Pair;
-                if (chip.GetColor == ColorType.White)
-                    chip.OnClickEventHandler += OnWhiteChipClicked;
-                else
-                    chip.OnClickEventHandler += OnBlackChipClicked;
+                    if (cell.Pair is null)
+                    {
+                        continue;
+                    }
+
+                    var chip = cell.Pair;
+                    if (chip.GetColor == ColorType.White)
+                        chip.OnClickEventHandler += OnWhiteChipClicked;
+                    else
+                        chip.OnClickEventHandler += OnBlackChipClicked;
+                }
             }
         }
 
-        private void OnCheckClicked(BaseClickComponent component)
+        public void OnCheckClicked(IBaseClickComponent component)
         {
             if ((component is CellComponent && component.IsMovePicked) ||
                 (component.Pair is CellComponent && component.Pair.IsMovePicked))
             {
                 _savePickedCell = component as CellComponent;
+                _observer?.SaveClick(component, component.GetCoordinate());
             }
 
             AllResetDefaultMaterial();
         }
 
-        private void OnWhiteChipClicked(BaseClickComponent component)
+        public void OnWhiteChipClicked(IBaseClickComponent component)
         {
             AllResetDefaultMaterial();
             if (!_gameManager.IsStopGame && _gameManager.IsWhiteMove)
@@ -71,10 +78,11 @@ namespace Checkers
                 _savePickedChip = chip;
                 CellHighlight(new Coordinates(coordinateCellUnderChip.X + 1, coordinateCellUnderChip.Y + 1), new Coordinates(coordinateCellUnderChip.X + 2, coordinateCellUnderChip.Y + 2), chip);
                 CellHighlight(new Coordinates(coordinateCellUnderChip.X - 1, coordinateCellUnderChip.Y + 1), new Coordinates(coordinateCellUnderChip.X - 2, coordinateCellUnderChip.Y + 2), chip);
+                _observer?.SaveClick(component, component.Pair.GetCoordinate());
             }
         }
 
-        private void OnBlackChipClicked(BaseClickComponent component)
+        public void OnBlackChipClicked(IBaseClickComponent component)
         {
             AllResetDefaultMaterial();
             if (!_gameManager.IsStopGame && !_gameManager.IsWhiteMove)
@@ -86,6 +94,7 @@ namespace Checkers
                 _savePickedChip = chip;
                 CellHighlight(new Coordinates(coordinateCellUnderChip.X + 1, coordinateCellUnderChip.Y - 1), new Coordinates(coordinateCellUnderChip.X + 2, coordinateCellUnderChip.Y - 2), chip);
                 CellHighlight(new Coordinates(coordinateCellUnderChip.X - 1, coordinateCellUnderChip.Y - 1), new Coordinates(coordinateCellUnderChip.X - 2, coordinateCellUnderChip.Y - 2), chip);
+                _observer?.SaveClick(component, component.Pair.GetCoordinate());
             }
         }
 
